@@ -1,0 +1,7 @@
+
+parent ---------------------------------------------|
+   |                                                |
+   |                                                |---> logger_impl
+   V                                                |
+client ------> logger ------> logger_interface -----|
+
