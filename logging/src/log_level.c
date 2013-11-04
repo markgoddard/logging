@@ -11,4 +11,3 @@ const char *log_level_to_string (log_level_t level)
 		default: return "?";
 	}
 }
-

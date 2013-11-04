@@ -8,6 +8,38 @@
 
 /*****************************************************************************/
 
+// Log threshold
+
+typedef struct
+{
+    bool applied;
+    log_level_t level;
+} log_threshold_t;
+
+static void log_threshold_set(log_threshold_t *threshold, log_level_t level)
+{
+    threshold->applied = true;
+    threshold->level = level;
+}
+
+static void log_threshold_clear(log_threshold_t *threshold)
+{
+    threshold->applied = false;
+    threshold->level = LOG_DEBUG;
+}
+
+static bool log_threshold_filter(const log_threshold_t *threshold, log_level_t level)
+{
+    return threshold->applied && threshold->level < level;
+}
+
+static log_level_t log_threshold_apply(const log_threshold_t *threshold, log_level_t level)
+{
+    return threshold->applied ? threshold->level : level;
+}
+
+/*****************************************************************************/
+
 // Private object definition
 
 struct log_source
@@ -24,8 +56,7 @@ struct log_source
 	unsigned ref_count;
 
 	const char *name;
-	bool level_applied;
-	log_level_t level;
+    log_threshold_t threshold;
 };
 
 /*****************************************************************************/
@@ -148,8 +179,7 @@ static log_source_t *log_source_create (void *obj, const log_source_interface_t 
 	source->next_child = NULL;
 	source->ref_count = 1;
 	source->name = name;
-	source->level_applied = false;
-	source->level = LOG_DEBUG;
+       log_threshold_clear (&source->threshold);
 	return source;
 }
 
@@ -204,7 +234,7 @@ static void log_source_unlock (log_source_t *source)
 
 static void log_source_log_message (log_source_t *source, log_level_t level, const char *fmt, va_list va_args)
 {
-	if (!source->level_applied || level >= source->level)
+    if (!log_threshold_filter (&source->threshold, level))
 		source->interface->log_message (source->obj, source, level, fmt, va_args);
 }
 
@@ -251,12 +281,18 @@ unsigned log_source_get_name (const log_source_t *source, char *name_buf, unsign
 	return r;
 }
 
-log_level_t log_source_get_level (log_source_t *source)
+bool log_source_get_threshold (log_source_t *source, log_level_t *threshold)
 {
-	return source->level;
+    *threshold = source->threshold.level;
+    return source->threshold.applied;
 }
 
-void log_source_set_level (log_source_t *source, log_level_t level)
+void log_source_set_threshold (log_source_t *source, log_level_t threshold)
 {
-	source->level = level;
+    log_threshold_set (&source->threshold, threshold);
+}
+
+void log_source_clear_threshold (log_source_t *source)
+{
+    log_threshold_clear (&source->threshold);
 }

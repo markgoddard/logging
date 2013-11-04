@@ -11,9 +11,6 @@
 struct log_sink_file
 {
 	log_sink_t sink;
-
-	log_level_t level;
-
 	const char *filename;
 	FILE *file;
 };
@@ -23,8 +20,6 @@ struct log_sink_file
 // Private interface declaration
 
 static void log_sink_file_log_message (log_sink_file_t *sink, log_level_t level, const char *source, const char *message);
-static log_level_t log_sink_file_get_level (log_sink_file_t *sink);
-static void log_sink_file_set_level (log_sink_file_t *sink, log_level_t level);
 
 /*****************************************************************************/
 
@@ -35,21 +30,9 @@ static void log_sink_file_log_message_fn (log_sink_t *sink, log_level_t level, c
 	log_sink_file_log_message ((log_sink_file_t *) sink, level, source, message);
 }
 
-static log_level_t log_sink_file_get_level_fn (log_sink_t *sink)
-{
-	return log_sink_file_get_level ((log_sink_file_t *) sink);
-}
-
-static void log_sink_file_set_level_fn (log_sink_t *sink, log_level_t level)
-{
-	log_sink_file_set_level ((log_sink_file_t *) sink, level);
-}
-
 static log_sink_interface_t log_sink_file_interface =
 {
 	log_sink_file_log_message_fn,
-	log_sink_file_get_level_fn,
-	log_sink_file_set_level_fn,
 };
 
 /*****************************************************************************/
@@ -58,34 +41,21 @@ static log_sink_interface_t log_sink_file_interface =
 
 static void log_sink_file_log_message (log_sink_file_t *sink, log_level_t level, const char *source, const char *message)
 {
-	if (level >= sink->level)
-	{
-		fprintf (sink->file, "%s: [%s]: %s", log_level_to_string (level), source, message);
-	}
-}
-
-static log_level_t log_sink_file_get_level (log_sink_file_t *sink)
-{
-	return sink->level;
-}
-
-static void log_sink_file_set_level (log_sink_file_t *sink, log_level_t level)
-{
-	sink->level = level;
+       fprintf (sink->file, "%s: [%s]: %s", log_level_to_string (level), source, message);
 }
 
 /*****************************************************************************/
 
 // Public interface definition
 
-log_sink_file_t *log_sink_file_create (const char *filename, log_level_t level)
+log_sink_file_t *log_sink_file_create (const char *filename, log_level_t threshold)
 {
 	log_sink_file_t *sink = (log_sink_file_t *) malloc (sizeof (log_sink_file_t));
 	if (!sink) return NULL;
 
 	sink->sink.obj = sink;
 	sink->sink.interface = &log_sink_file_interface;
-	sink->level = level;
+    sink->sink.threshold = threshold;
 
 	sink->filename = filename;
 	sink->file = fopen (filename, "w");

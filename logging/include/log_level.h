@@ -1,6 +1,8 @@
 #ifndef LOG_LEVEL_H
 #define LOG_LEVEL_H
 
+#include <stdbool.h>
+
 typedef enum
 {
 	LOG_DEBUG,

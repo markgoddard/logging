@@ -2,6 +2,7 @@
 #define LOG_SOURCE_H
 
 #include "logger.h"
+#include <stdbool.h>
 
 typedef struct log_source log_source_t;
 
@@ -21,8 +22,10 @@ logger_t *log_source_get_logger (log_source_t *source);
 
 unsigned log_source_get_name (const log_source_t *source, char *name_buf, unsigned name_buf_len, const char *separator);
 
-log_level_t log_source_get_level (log_source_t *source);
+bool log_source_get_threshold (log_source_t *source, log_level_t *threshold);
 
-void log_source_set_level (log_source_t *source, log_level_t level);
+void log_source_set_threshold (log_source_t *source, log_level_t threshold);
+
+void log_source_clear_threshold (log_source_t *source);
 
 #endif // LOG_SOURCE_H
